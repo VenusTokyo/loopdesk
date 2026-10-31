@@ -82,6 +82,10 @@ class TicketResponse(BaseModel):
     github_url: str | None = None
     dry_run: bool = False
     me_too: bool = False
+    # False when GitHub was reachable-in-principle (a token is configured) but
+    # the call failed. The report is still stored; only delivery failed.
+    delivered: bool = True
+    error: str | None = None
 
 
 class DraftApproval(BaseModel):

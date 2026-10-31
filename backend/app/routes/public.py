@@ -93,7 +93,8 @@ def create_ticket(req: TicketRequest, db: Session = Depends(get_db)):
         existing = (
             db.query(Ticket)
             .filter(Ticket.github_issue_number == req.me_too_issue_number)
-            .one_or_none()
+            .order_by(Ticket.created_at.desc())
+            .first()
         )
         try:
             gh.comment(
@@ -115,13 +116,17 @@ def create_ticket(req: TicketRequest, db: Session = Depends(get_db)):
         )
 
     labels, assignees = routing_for(req.subproduct)
+    delivery_error: str | None = None
     try:
         issue = gh.create_issue(req.title, req.description, labels, assignees)
     except Exception as exc:  # noqa: BLE001 - never lose the user's report
         log.error("GitHub issue creation failed: %s", exc)
-        issue = {"number": None, "html_url": None, "dry_run": True}
+        issue = {"number": None, "html_url": None}
+        delivery_error = str(exc)
 
     if issue.get("dry_run"):
+        # No token configured: simulate a number so the rest of the loop is
+        # demonstrable. Only ever done when GitHub was never contacted.
         issue["number"] = _next_dry_run_number(db)
         repo = settings.github_repo or "example/loopdesk-demo-tickets"
         issue["html_url"] = f"https://github.com/{repo}/issues/{issue['number']}"
@@ -157,6 +162,8 @@ def create_ticket(req: TicketRequest, db: Session = Depends(get_db)):
         github_issue_number=ticket.github_issue_number,
         github_url=ticket.github_url,
         dry_run=ticket.dry_run,
+        delivered=delivery_error is None,
+        error=delivery_error,
     )
 
 

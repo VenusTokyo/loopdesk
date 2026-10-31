@@ -254,3 +254,34 @@ def test_stats_report_deflection(client):
     assert 0.0 <= s["deflection_rate"] <= 1.0
     with SessionLocal() as db:
         assert db.query(Ticket).count() >= 1
+
+
+def test_live_failure_does_not_invent_an_issue_number(client, monkeypatch):
+    """A failed live call must not hand the user a link to an issue that does
+    not exist. Only a configuration with no token at all may simulate one."""
+
+    class FailingGitHub:
+        enabled = True
+
+        def create_issue(self, *a, **kw):
+            raise RuntimeError("403 Forbidden")
+
+    monkeypatch.setattr("backend.app.routes.public.get_github", lambda: FailingGitHub())
+
+    body = client.post(
+        "/api/tickets",
+        json={
+            "report_id": None,
+            "title": "Something broke",
+            "description": "details",
+            "subproduct": "analytics",
+        },
+    ).json()
+
+    assert body["delivered"] is False
+    assert body["error"]
+    assert body["github_issue_number"] is None
+    assert body["github_url"] is None
+    # The report is not lost: a ticket row still exists for it.
+    with SessionLocal() as db:
+        assert db.get(Ticket, body["id"]) is not None

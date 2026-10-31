@@ -145,7 +145,8 @@ def _embed_text(db: Session, sol: Solution) -> str:
         ticket = (
             db.query(Ticket)
             .filter(Ticket.github_issue_number == sol.source_issue_number)
-            .one_or_none()
+            .order_by(Ticket.created_at.desc())
+            .first()
         )
         if ticket:
             text += f"\n{ticket.title}\n{ticket.body}"

@@ -45,7 +45,13 @@ async def github_webhook(
     if number is None:
         return {"ignored": True, "reason": "no linked issue"}
 
-    ticket = db.query(Ticket).filter(Ticket.github_issue_number == number).one_or_none()
+    # Not one_or_none: a pre-existing duplicate row must not 500 the webhook.
+    ticket = (
+        db.query(Ticket)
+        .filter(Ticket.github_issue_number == number)
+        .order_by(Ticket.created_at.desc())
+        .first()
+    )
     if ticket is None:
         log.info("webhook for issue #%s which LoopDesk did not create", number)
         return {"ignored": True, "reason": "unknown ticket"}
