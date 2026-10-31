@@ -181,6 +181,7 @@ solution, approval publishes and commits it, and the next user gets it.
 
 - [docs/architecture.md](docs/architecture.md) — how the pieces fit
 - [docs/self-hosting.md](docs/self-hosting.md) — running on fully open weights
+- [docs/github-setup.md](docs/github-setup.md) — connecting real tickets and the webhook
 - [docs/deployment.md](docs/deployment.md) — DigitalOcean checklist
 - [docs/demo-script.md](docs/demo-script.md) — the three-minute walkthrough
 - [docs/roadmap.md](docs/roadmap.md) — what comes next
