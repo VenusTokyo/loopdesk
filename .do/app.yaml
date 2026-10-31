@@ -1,0 +1,100 @@
+# DigitalOcean App Platform spec.
+#
+# Create > Apps > GitHub > VenusTokyo/loopdesk, or import this file directly.
+# One service serves the API, the widget bundle, the landing page, the demo
+# app and the admin page, so there is only one thing to deploy.
+#
+# Note: the App Platform filesystem is ephemeral. SQLite and locally stored
+# screenshots are wiped on every deploy and restart, which is fine for a demo
+# because the predeploy job re-seeds. For anything real, attach a Managed
+# Postgres and set STORAGE_BACKEND=spaces.
+
+name: loopdesk
+region: blr
+
+services:
+  - name: web
+    github:
+      repo: VenusTokyo/loopdesk
+      branch: main
+      deploy_on_push: true
+
+    environment_slug: python
+    build_command: pip install -r backend/requirements.txt
+    run_command: uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
+
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+
+    health_check:
+      http_path: /healthz
+      initial_delay_seconds: 20
+      period_seconds: 15
+
+    envs:
+      - key: LLM_PROVIDER
+        value: gemma
+      - key: GEMINI_MODEL
+        value: gemma-4-26b-a4b-it
+      - key: GEMINI_EMBED_MODEL
+        value: gemini-embedding-001
+      - key: STORAGE_BACKEND
+        value: local
+      - key: DATABASE_URL
+        value: sqlite:///./data/loopdesk.db
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: DEMO_DUPLICATE_ISSUE
+        value: "1"
+      - key: GITHUB_REPO
+        value: VenusTokyo/loopdesk-demo-tickets
+      - key: GITHUB_SOLUTIONS_REPO
+        value: VenusTokyo/loopdesk
+
+      # Set these in the control panel as encrypted secrets, not here.
+      - key: PUBLIC_BASE_URL
+        value: ${APP_URL}
+      - key: GEMINI_API_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+        value: PUT_IN_CONTROL_PANEL
+      - key: GITHUB_TOKEN
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+        value: PUT_IN_CONTROL_PANEL
+      - key: GITHUB_WEBHOOK_SECRET
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+        value: PUT_IN_CONTROL_PANEL
+      - key: ADMIN_TOKEN
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+        value: PUT_IN_CONTROL_PANEL
+
+jobs:
+  - name: seed
+    kind: PRE_DEPLOY
+    github:
+      repo: VenusTokyo/loopdesk
+      branch: main
+      deploy_on_push: true
+    environment_slug: python
+    build_command: pip install -r backend/requirements.txt
+    run_command: python -m backend.seed.seed
+    instance_size_slug: apps-s-1vcpu-1gb
+    envs:
+      - key: LLM_PROVIDER
+        value: gemma
+      - key: GEMINI_EMBED_MODEL
+        value: gemini-embedding-001
+      - key: DATABASE_URL
+        value: sqlite:///./data/loopdesk.db
+      - key: DEMO_DUPLICATE_ISSUE
+        value: "1"
+      - key: GITHUB_REPO
+        value: VenusTokyo/loopdesk-demo-tickets
+      - key: GEMINI_API_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+        value: PUT_IN_CONTROL_PANEL
