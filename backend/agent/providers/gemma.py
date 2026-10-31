@@ -26,6 +26,14 @@ class GemmaProvider:
         if not self.key:
             raise RuntimeError("GEMINI_API_KEY is required for LLM_PROVIDER=gemma")
 
+    @property
+    def supports_json_mode(self) -> bool:
+        """Gemma models on the Gemini API reject responseMimeType with
+        "JSON mode is not enabled for models/gemma-...", HTTP 400. The system
+        prompt asks for JSON anyway and `_loads_lenient` digs it out of prose
+        or a code fence, so dropping the flag costs nothing."""
+        return not self.model.lower().startswith("gemma")
+
     def vision_json(
         self, system: str, user: str, image_b64: str | None, schema: dict[str, Any]
     ) -> dict[str, Any]:
@@ -34,10 +42,10 @@ class GemmaProvider:
             parts.append(
                 {"inline_data": {"mime_type": "image/png", "data": _raw_b64(image_b64)}}
             )
-        body = {
-            "contents": [{"role": "user", "parts": parts}],
-            "generationConfig": {"temperature": 0.2, "responseMimeType": "application/json"},
-        }
+        config: dict[str, Any] = {"temperature": 0.2}
+        if self.supports_json_mode:
+            config["responseMimeType"] = "application/json"
+        body = {"contents": [{"role": "user", "parts": parts}], "generationConfig": config}
         with httpx.Client(timeout=60) as c:
             r = c.post(
                 f"{API}/models/{self.model}:generateContent",
@@ -50,6 +58,17 @@ class GemmaProvider:
             p.get("text", "") for p in data["candidates"][0]["content"]["parts"]
         )
         return _loads_lenient(text)
+
+    def list_models(self) -> list[str]:
+        """What this key can actually call. Model ids move; this settles it."""
+        with httpx.Client(timeout=30) as c:
+            r = c.get(f"{API}/models", params={"key": self.key, "pageSize": 200})
+            r.raise_for_status()
+            return sorted(
+                m.get("name", "").removeprefix("models/")
+                for m in r.json().get("models", [])
+                if "generateContent" in (m.get("supportedGenerationMethods") or [])
+            )
 
     def embed(self, text: str) -> list[float]:
         with httpx.Client(timeout=30) as c:

@@ -115,10 +115,22 @@ text editor.
 |---|---|---|
 | `mock` | offline, deterministic | default; demos and CI with no key |
 | `gemma` | Gemma via the Gemini API | multimodal screenshot analysis |
-| `openai_compat` | any OpenAI-compatible endpoint (Ollama, vLLM, a DigitalOcean GenAI endpoint) | fully self-hosted open weights |
+| `openai_compat` | any OpenAI-compatible endpoint: Ollama, vLLM, DigitalOcean serverless inference | open weights, self-hosted or managed |
 
 Adding a provider means one file in `backend/agent/providers/`. Nothing else
 in the codebase knows which model is running.
+
+Check a provider before you rely on it — it runs the real structured vision
+call and a real embedding, and tells you if the configured provider silently
+fell back to `mock`:
+
+```bash
+python -m backend.agent.check_provider
+python -m backend.agent.check_provider --list   # model ids this key can call
+```
+
+Switching provider changes the embedding space, so re-seed afterwards:
+`python -m backend.seed.seed --reset`.
 
 ## Privacy
 

@@ -38,7 +38,42 @@ python -m backend.seed.seed --reset
 Embeddings from different models are not comparable. Always re-seed after
 switching.
 
-## Option 2: vLLM on a GPU droplet
+## Option 2: DigitalOcean serverless inference
+
+DigitalOcean serves open-weight models behind an OpenAI-compatible API, so
+the provider LoopDesk already has works unchanged - no GPU to manage, no
+droplet to keep alive.
+
+```ini
+LLM_PROVIDER=openai_compat
+OPENAI_COMPAT_BASE_URL=https://inference.do-ai.run/v1
+OPENAI_COMPAT_API_KEY=<model access key from the DO control panel>
+OPENAI_COMPAT_MODEL=openai-gpt-oss-120b
+```
+
+Create the model access key in the DigitalOcean control panel, not an API
+token: they are different credentials.
+
+Two things to check on the day rather than trust:
+
+1. **Availability.** This has been offered under more than one name
+   (Gradient AI Platform, Inference) and parts of it have been in preview.
+2. **Model ids.** They change. List what your key can call:
+
+```bash
+curl -H "Authorization: Bearer $KEY" https://inference.do-ai.run/v1/models
+```
+
+Then confirm LoopDesk can use it:
+
+```bash
+python -m backend.agent.check_provider
+```
+
+If the catalogue has no embedding model, keep embeddings on another provider
+or fall back to the page-based suggestions, which need no vectors at all.
+
+## Option 3: vLLM on a GPU droplet
 
 ```bash
 pip install vllm
@@ -55,7 +90,7 @@ OPENAI_COMPAT_MODEL=google/gemma-3-12b-it
 Keep the endpoint on a private network or behind an API key — it accepts
 screenshots.
 
-## Option 3: offline
+## Option 4: offline
 
 `LLM_PROVIDER=mock` needs nothing at all. It does real keyword overlap against
 the retrieved candidates, so the confidence gate behaves sensibly: it answers
@@ -80,6 +115,20 @@ page suggestions matter, and why a real model is worth configuring.
 
 With `openai_compat` pointed at your own endpoint and `STORAGE_BACKEND=local`,
 nothing leaves your infrastructure.
+
+## A Gemma quirk worth knowing
+
+Gemma models served through the Gemini API reject `responseMimeType:
+"application/json"` with *"JSON mode is not enabled for models/gemma-..."*
+(HTTP 400), even though Gemini models accept it. LoopDesk detects a `gemma-`
+model id and omits the flag; the system prompt asks for JSON anyway and the
+response is parsed leniently, so nothing else changes.
+
+Model ids move. Settle it with your own key:
+
+```bash
+python -m backend.agent.check_provider --list
+```
 
 ## Adding a provider
 
