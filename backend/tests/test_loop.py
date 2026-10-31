@@ -10,17 +10,22 @@ They cover the behaviour the demo depends on:
 from __future__ import annotations
 
 import os
+import pathlib
 import tempfile
 
 import pytest
 
-os.environ["DATABASE_URL"] = f"sqlite:///{tempfile.mkdtemp()}/test.db"
+_TMP = tempfile.mkdtemp()
+os.environ["DATABASE_URL"] = f"sqlite:///{_TMP}/test.db"
 os.environ["LLM_PROVIDER"] = "mock"
 os.environ["GITHUB_TOKEN"] = ""
+# Approving a draft writes solutions/<subproduct>/<slug>.md. Without this the
+# suite writes into the real working tree.
+os.environ["SOLUTIONS_DIR"] = _TMP
 
 from fastapi.testclient import TestClient  # noqa: E402
 
-from backend.app.config import settings  # noqa: E402
+from backend.app.config import REPO_ROOT, settings  # noqa: E402
 from backend.app.db import SessionLocal, init_db  # noqa: E402
 from backend.app.main import app  # noqa: E402
 from backend.app.models import Solution, Ticket  # noqa: E402
@@ -209,6 +214,9 @@ def test_full_resolution_loop(client):
     ).json()
     assert approved["ok"] is True
     assert approved["path"].startswith("solutions/analytics/")
+    # It must land in the temp dir, never in the repository being tested.
+    assert (pathlib.Path(_TMP) / approved["path"]).exists()
+    assert not (REPO_ROOT / approved["path"]).exists()
 
     # 4. The next user with the same problem gets it straight away.
     nxt = client.post(

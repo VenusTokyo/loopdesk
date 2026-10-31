@@ -50,6 +50,8 @@ class Settings(BaseSettings):
     # Issue numbers start at 1 in a fresh repository, so this is not a constant.
     demo_duplicate_issue: int = 42
 
+    solutions_dir: str = ""
+
     confidence_high: float = 0.7
     confidence_low: float = 0.4
     admin_token: str = "dev-admin"
@@ -71,6 +73,13 @@ class Settings(BaseSettings):
     @property
     def solutions_repo(self) -> str:
         return self.github_solutions_repo or self.github_repo
+
+    @property
+    def solutions_root(self) -> Path:
+        """Where solutions/<subproduct>/<slug>.md is written when we cannot
+        commit (dry-run, or a failed push). Overridable so tests do not write
+        into the working tree."""
+        return Path(self.solutions_dir) if self.solutions_dir else REPO_ROOT
 
 
 @lru_cache

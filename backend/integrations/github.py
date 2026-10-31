@@ -66,7 +66,7 @@ class DryRunGitHub:
         return {"number": number, "title": "", "body": "", "labels": [], "comments_list": []}
 
     def put_file(self, path: str, content: str, message: str) -> dict[str, Any]:
-        local = REPO_ROOT / path
+        local = settings.solutions_root / path
         local.parent.mkdir(parents=True, exist_ok=True)
         local.write_text(content, encoding="utf-8")
         log.info("[dry-run] wrote %s locally instead of committing", path)
@@ -177,4 +177,4 @@ def slugify(text: str) -> str:
 
 
 def local_solution_file(sol) -> Path:
-    return REPO_ROOT / solution_path(sol)
+    return settings.solutions_root / solution_path(sol)
