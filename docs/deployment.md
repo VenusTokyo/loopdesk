@@ -22,6 +22,10 @@ get wrong on the day.
 - [ ] **`PUBLIC_BASE_URL`** set to the deployed URL — screenshot links in
       tickets are built from it.
 - [ ] **`CORS_ORIGINS`** set to the host app's origin (not `*` in production).
+- [ ] **`GITHUB_REPO`** = the tickets repo, and **`GITHUB_SOLUTIONS_REPO`** =
+      the product repo if approved solutions should be committed next to the
+      code rather than into the triage queue. A fine-grained token needs
+      Issues read/write on the first and Contents read/write on the second.
 - [ ] **GitHub webhook** pointed at `https://<app>/webhooks/github`,
       content type `application/json`, same secret, events: Issues and
       Pull requests.

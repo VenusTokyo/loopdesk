@@ -40,6 +40,10 @@ class Settings(BaseSettings):
 
     github_token: str = ""
     github_repo: str = ""
+    # Published solutions are committed here. Tickets usually live in a noisy
+    # demo/triage repo while the knowledge base belongs with the product code,
+    # so these are separable. Empty means "same repo as the tickets".
+    github_solutions_repo: str = ""
     github_webhook_secret: str = "dev-secret"
 
     # The hand-seeded open ticket used to demonstrate duplicate detection.
@@ -63,6 +67,10 @@ class Settings(BaseSettings):
     @property
     def github_enabled(self) -> bool:
         return bool(self.github_token and self.github_repo)
+
+    @property
+    def solutions_repo(self) -> str:
+        return self.github_solutions_repo or self.github_repo
 
 
 @lru_cache

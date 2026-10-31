@@ -115,10 +115,16 @@ class GitHubClient:
         return issue
 
     def put_file(self, path: str, content: str, message: str) -> dict[str, Any]:
-        """Create or update a file via the contents API."""
+        """Create or update a file via the contents API.
+
+        Solutions are committed to `solutions_repo`, which defaults to the
+        ticket repo but is usually the product repo - the knowledge base
+        belongs next to the code, not in the triage queue.
+        """
+        repo = settings.solutions_repo
         with self._client() as c:
             sha = None
-            head = c.get(f"/repos/{self.repo}/contents/{path}")
+            head = c.get(f"/repos/{repo}/contents/{path}")
             if head.status_code == 200:
                 sha = head.json().get("sha")
             payload = {
@@ -127,7 +133,7 @@ class GitHubClient:
             }
             if sha:
                 payload["sha"] = sha
-            r = c.put(f"/repos/{self.repo}/contents/{path}", json=payload)
+            r = c.put(f"/repos/{repo}/contents/{path}", json=payload)
             r.raise_for_status()
             return r.json()
 
