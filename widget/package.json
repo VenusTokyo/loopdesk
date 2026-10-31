@@ -1,0 +1,11 @@
+{
+  "name": "loopdesk-widget",
+  "version": "0.1.0",
+  "description": "Drop-in screenshot-to-solution widget",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "build": "node build.js",
+    "watch": "node -e \"require('fs').watch('src',()=>require('child_process').execSync('node build.js',{stdio:'inherit'}))\""
+  }
+}

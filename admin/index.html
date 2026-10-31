@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LoopDesk admin</title>
+<style>
+  :root { --line:#d8dee4; --muted:#6b7684; --brand:#1f6feb; --ok:#1a7f37; --bad:#b42318; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:#f6f8fa; color:#1b1f24;
+         font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  header { background:#fff; border-bottom:1px solid var(--line); padding:14px 24px;
+           display:flex; align-items:center; gap:16px; }
+  header h1 { font-size:17px; margin:0; flex:1; }
+  main { max-width:900px; margin:28px auto; padding:0 24px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px; margin-bottom:16px; }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; }
+  .stat { background:#fff; border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .stat b { display:block; font-size:22px; }
+  .stat span { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; }
+  h2 { font-size:15px; margin:24px 0 10px; }
+  input[type=text], textarea, input[type=password] {
+    width:100%; font:inherit; padding:8px 10px; border:1px solid var(--line); border-radius:8px; }
+  textarea { resize:vertical; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:13px; }
+  label { display:block; font-size:12px; font-weight:600; color:var(--muted); margin:10px 0 4px; }
+  button { font:inherit; padding:8px 13px; border-radius:8px; border:1px solid var(--line);
+           background:#fff; cursor:pointer; }
+  button.primary { background:var(--brand); border-color:var(--brand); color:#fff; font-weight:600; }
+  button.danger { border-color:#f1b0a8; color:var(--bad); }
+  .row { display:flex; gap:8px; margin-top:12px; }
+  .pill { font-size:11px; padding:2px 8px; border-radius:999px; background:#eef2f6; color:#4a5560; }
+  .muted { color:var(--muted); font-size:13px; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th,td { text-align:left; padding:8px; border-bottom:1px solid #eef1f4; }
+  th { font-size:12px; color:var(--muted); text-transform:uppercase; }
+  .banner { padding:10px 12px; border-radius:8px; margin-bottom:14px; font-size:14px; }
+  .banner.ok { background:#e6f6ec; color:var(--ok); }
+  .banner.bad { background:#fff1f0; color:var(--bad); }
+</style>
+</head>
+<body>
+<header>
+  <h1>LoopDesk admin</h1>
+  <input type="password" id="token" placeholder="admin token" style="width:200px">
+  <button id="reload" class="primary">Load</button>
+</header>
+
+<main>
+  <div id="msg"></div>
+  <div class="stats" id="stats"></div>
+
+  <h2>Drafts awaiting approval</h2>
+  <div id="drafts"><p class="muted">Enter the admin token and press Load.</p></div>
+
+  <h2>Tickets</h2>
+  <div class="card"><div id="tickets"><p class="muted">-</p></div></div>
+
+  <h2>Published knowledge base</h2>
+  <div class="card"><div id="published"><p class="muted">-</p></div></div>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const TOKEN_KEY = 'loopdesk.admin.token';
+
+function token() { return $('token').value.trim(); }
+
+async function api(path, body) {
+  const res = await fetch('/api/admin' + path, {
+    method: body ? 'POST' : 'GET',
+    headers: { 'Content-Type': 'application/json', 'X-Admin-Token': token() },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) throw new Error(res.status === 401 ? 'Wrong admin token.' : `Request failed (${res.status})`);
+  return res.json();
+}
+
+function note(text, bad) {
+  $('msg').innerHTML = text ? `<div class="banner ${bad ? 'bad' : 'ok'}">${text}</div>` : '';
+}
+
+function el(tag, attrs, kids) {
+  const n = document.createElement(tag);
+  Object.entries(attrs || {}).forEach(([k, v]) => {
+    if (k === 'text') n.textContent = v;
+    else if (k.startsWith('on')) n.addEventListener(k.slice(2), v);
+    else if (v !== null && v !== undefined) n.setAttribute(k, v);
+  });
+  (kids || []).forEach((c) => c && n.appendChild(c));
+  return n;
+}
+
+async function loadAll() {
+  try {
+    localStorage.setItem(TOKEN_KEY, token());
+    note('');
+    const [stats, drafts, tickets, all] = await Promise.all([
+      api('/stats'), api('/drafts'), api('/tickets'), api('/solutions'),
+    ]);
+    renderStats(stats);
+    renderDrafts(drafts);
+    renderTickets(tickets);
+    renderPublished(all.filter((s) => s.status === 'published'));
+  } catch (err) {
+    note(err.message, true);
+  }
+}
+
+function renderStats(s) {
+  $('stats').innerHTML = '';
+  const cells = [
+    ['Reports', s.reports], ['Tickets', s.tickets],
+    ['Deflected', `${s.deflected} (${Math.round(s.deflection_rate * 100)}%)`],
+    ['Helpful', s.helpful_ratings], ['Published', s.published_solutions], ['Drafts', s.draft_solutions],
+  ];
+  cells.forEach(([label, value]) => {
+    $('stats').appendChild(el('div', { class: 'stat' }, [
+      el('b', { text: String(value) }), el('span', { text: label }),
+    ]));
+  });
+}
+
+function renderDrafts(rows) {
+  const host = $('drafts');
+  host.innerHTML = '';
+  if (!rows.length) { host.appendChild(el('p', { class: 'muted', text: 'No drafts. Close a LoopDesk ticket in GitHub to generate one.' })); return; }
+
+  rows.forEach((d) => {
+    const title = el('input', { type: 'text', value: d.title });
+    const summary = el('textarea', { rows: '2' }); summary.value = d.summary || '';
+    const steps = el('textarea', { rows: '6' }); steps.value = d.steps_md || '';
+
+    const card = el('div', { class: 'card' }, [
+      el('div', {}, [
+        el('span', { class: 'pill', text: d.subproduct }),
+        d.source_issue_number ? el('span', { class: 'pill', text: `issue #${d.source_issue_number}` }) : null,
+        d.applies_from ? el('span', { class: 'pill', text: `from v${d.applies_from}` }) : null,
+      ]),
+      el('label', { text: 'Title' }), title,
+      el('label', { text: 'Summary' }), summary,
+      el('label', { text: 'Steps (markdown)' }), steps,
+      el('div', { class: 'row' }, [
+        el('button', {
+          class: 'primary', text: 'Approve and publish',
+          onclick: async () => {
+            try {
+              const r = await api('/approve', {
+                solution_id: d.id, title: title.value, summary: summary.value, steps_md: steps.value,
+              });
+              note(`Published. Committed to ${r.path}${r.committed ? '' : ' (written locally - no GitHub token)'}.`);
+              loadAll();
+            } catch (err) { note(err.message, true); }
+          },
+        }),
+        el('button', {
+          class: 'danger', text: 'Reject',
+          onclick: async () => {
+            try { await api('/reject', { solution_id: d.id }); note('Draft rejected.'); loadAll(); }
+            catch (err) { note(err.message, true); }
+          },
+        }),
+      ]),
+    ]);
+    host.appendChild(card);
+  });
+}
+
+function renderTickets(rows) {
+  const host = $('tickets');
+  host.innerHTML = '';
+  if (!rows.length) { host.appendChild(el('p', { class: 'muted', text: 'No tickets yet.' })); return; }
+  const table = el('table', {}, [
+    el('thead', {}, [el('tr', {}, ['#', 'Title', 'Sub-product', 'Status', ''].map((t) => el('th', { text: t })))]),
+  ]);
+  const tbody = el('tbody');
+  rows.forEach((t) => {
+    tbody.appendChild(el('tr', {}, [
+      el('td', { text: t.number ? `#${t.number}` : '-' }),
+      el('td', { text: t.title }),
+      el('td', { text: t.subproduct }),
+      el('td', { text: t.status + (t.dry_run ? ' (dry-run)' : '') }),
+      el('td', {}, [t.url ? el('a', { href: t.url, target: '_blank', rel: 'noopener', text: 'open' }) : null]),
+    ]));
+  });
+  table.appendChild(tbody);
+  host.appendChild(table);
+}
+
+function renderPublished(rows) {
+  const host = $('published');
+  host.innerHTML = '';
+  if (!rows.length) { host.appendChild(el('p', { class: 'muted', text: 'Knowledge base is empty. Run the seed script.' })); return; }
+  const table = el('table', {}, [
+    el('thead', {}, [el('tr', {}, ['Title', 'Sub-product', 'Source', 'Helpful', 'Not helpful', 'Ticket after'].map((t) => el('th', { text: t })))]),
+  ]);
+  const tbody = el('tbody');
+  rows.forEach((s) => {
+    tbody.appendChild(el('tr', {}, [
+      el('td', { text: s.title }),
+      el('td', { text: s.subproduct }),
+      el('td', { text: s.source_issue_number ? `#${s.source_issue_number}` : s.source }),
+      el('td', { text: String(s.helpful_count) }),
+      el('td', { text: String(s.unhelpful_count) }),
+      el('td', { text: String(s.ticket_after_count) }),
+    ]));
+  });
+  table.appendChild(tbody);
+  host.appendChild(table);
+}
+
+$('reload').addEventListener('click', loadAll);
+$('token').addEventListener('keydown', (e) => { if (e.key === 'Enter') loadAll(); });
+$('token').value = localStorage.getItem(TOKEN_KEY) || '';
+if ($('token').value) loadAll();
+</script>
+</body>
+</html>

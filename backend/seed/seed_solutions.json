@@ -1,0 +1,112 @@
+[
+  {
+    "title": "Invoice export fails with a server error",
+    "summary": "The CSV and PDF export of invoices returns a 500 while the billing renderer is under load. Exporting a single invoice works.",
+    "steps_md": "- Open the invoice you need from the **Invoices** table.\n- Use **Download** on the individual invoice instead of **Export invoices**.\n- For a full month, request the export again after a few minutes - the renderer retries automatically.\n- If you need all invoices now, ask Billing support to email the monthly statement.",
+    "subproduct": "billing",
+    "route_patterns": ["/billing", "/billing/*", "/demo/billing/", "/demo/billing/*"],
+    "applies_from": "2.0.0",
+    "applies_to": null,
+    "status": "published",
+    "source": "seed"
+  },
+  {
+    "title": "Invoice amounts show the wrong currency symbol",
+    "summary": "Workspaces created before v2.2 display amounts with the default currency symbol rather than the workspace currency.",
+    "steps_md": "- Go to **Billing > Preferences**.\n- Set **Display currency** explicitly, even if it already looks correct.\n- Reload the Billing page.",
+    "subproduct": "billing",
+    "route_patterns": ["/billing", "/billing/*", "/demo/billing/", "/demo/billing/*"],
+    "applies_from": "2.0.0",
+    "applies_to": "2.1.9",
+    "status": "published",
+    "source": "seed"
+  },
+  {
+    "title": "Payment method cannot be removed while an invoice is open",
+    "summary": "Removing the saved card is blocked until every open invoice is settled.",
+    "steps_md": "- Settle or cancel any invoice still marked **Open**.\n- Return to **Settings > Payment** and remove the card.",
+    "subproduct": "billing",
+    "route_patterns": ["/billing", "/demo/billing/"],
+    "applies_from": null,
+    "applies_to": null,
+    "status": "published",
+    "source": "seed"
+  },
+  {
+    "title": "\"Permission denied\" when inviting a teammate",
+    "summary": "Inviting people requires the Admin role. A Member account gets a bare \"Permission denied\" message with no explanation.",
+    "steps_md": "- Check your role under the avatar menu - invites need **Admin**.\n- Ask a workspace admin to send the invite, or to raise your role.\n- Admins can invite from **Projects > Team > Invite teammate**.",
+    "subproduct": "projects",
+    "route_patterns": ["/projects", "/projects/*", "/demo/projects/", "/demo/projects/*"],
+    "applies_from": null,
+    "applies_to": null,
+    "status": "published",
+    "source": "seed"
+  },
+  {
+    "title": "Archived projects still appear in the project list",
+    "summary": "The project list caches for up to ten minutes, so a freshly archived project can linger.",
+    "steps_md": "- Reload the page with a hard refresh.\n- If it is still listed after ten minutes, open the project and confirm its status is **Archived**.",
+    "subproduct": "projects",
+    "route_patterns": ["/projects", "/projects/*", "/demo/projects/", "/demo/projects/*"],
+    "applies_from": "2.3.0",
+    "applies_to": null,
+    "status": "published",
+    "source": "seed"
+  },
+  {
+    "title": "Project members cannot see shared files",
+    "summary": "Files uploaded before a member joined stay restricted to the original uploader unless the project is set to share history.",
+    "steps_md": "- Open **Projects > Settings > Sharing**.\n- Turn on **Share file history with new members**.\n- New members then see files uploaded before they joined.",
+    "subproduct": "projects",
+    "route_patterns": ["/projects/*", "/demo/projects/*"],
+    "applies_from": null,
+    "applies_to": null,
+    "status": "published",
+    "source": "seed"
+  },
+  {
+    "title": "Analytics export is capped at 1,000 rows",
+    "summary": "CSV exports from Analytics stop at 1,000 rows. Larger exports need the scheduled report.",
+    "steps_md": "- Narrow the date range so the result is under 1,000 rows, or\n- Use **Analytics > Scheduled reports** to have the full export emailed.",
+    "subproduct": "analytics",
+    "route_patterns": ["/analytics", "/analytics/*", "/demo/analytics/", "/demo/analytics/*"],
+    "applies_from": null,
+    "applies_to": null,
+    "status": "published",
+    "source": "seed"
+  },
+  {
+    "title": "Charts render empty in Safari 15",
+    "summary": "Analytics charts are blank on Safari 15 and older because of an unsupported canvas API.",
+    "steps_md": "- Update Safari to version 16 or later.\n- As a stopgap, open Analytics in Chrome or Firefox.",
+    "subproduct": "analytics",
+    "route_patterns": ["/analytics", "/demo/analytics/"],
+    "applies_from": "1.0.0",
+    "applies_to": "2.1.0",
+    "status": "deprecated",
+    "source": "seed"
+  },
+  {
+    "title": "Timezone in Analytics does not match the workspace setting",
+    "summary": "Analytics buckets events in UTC until a workspace timezone is saved explicitly.",
+    "steps_md": "- Open **Settings > Workspace > Timezone**.\n- Save the timezone even if the correct one is already shown.\n- Reload Analytics - buckets realign within a minute.",
+    "subproduct": "analytics",
+    "route_patterns": ["/analytics", "/analytics/*", "/demo/analytics/", "/demo/analytics/*"],
+    "applies_from": "2.2.0",
+    "applies_to": null,
+    "status": "published",
+    "source": "seed"
+  },
+  {
+    "title": "Two-factor codes are rejected right after setup",
+    "summary": "Codes fail for a few minutes after enabling two-factor authentication while the device clock syncs.",
+    "steps_md": "- Check that your phone's clock is set automatically.\n- Wait for the next code and try again.\n- Use a recovery code if you are locked out.",
+    "subproduct": "settings",
+    "route_patterns": ["/settings", "/settings/*"],
+    "applies_from": null,
+    "applies_to": null,
+    "status": "published",
+    "source": "seed"
+  }
+]

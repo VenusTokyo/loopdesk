@@ -1,0 +1,15 @@
+# Sub-product -> GitHub assignee / team. Used to route new tickets.
+defaults:
+  assignees: []
+  labels: ["from:loopdesk", "needs-triage"]
+
+subproducts:
+  billing:
+    assignees: []
+    labels: ["sub:billing"]
+  projects:
+    assignees: []
+    labels: ["sub:projects"]
+  analytics:
+    assignees: []
+    labels: ["sub:analytics"]

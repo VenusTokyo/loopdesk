@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Acme Suite</title>
+<link rel="stylesheet" href="/demo/assets/app.css">
+<script src="/demo/assets/app.js"></script>
+<script>
+  window.LOOPDESK_CONTEXT = { subproduct: 'home', app_version: '2.4.0', user_role: 'member' };
+</script>
+</head>
+<body>
+<main>
+  <h1>Acme Suite</h1>
+  <p class="sub">A sample host product, here only to contain realistic problems.</p>
+
+  <div class="card">
+    <h2>The demo path</h2>
+    <table>
+      <thead><tr><th>Page</th><th>Seeded problem</th><th>Knowledge base</th></tr></thead>
+      <tbody>
+        <tr><td><a href="/demo/billing/">Billing</a></td><td>Invoice export fails with a 500</td><td>Solved - agent answers with a citation</td></tr>
+        <tr><td><a href="/demo/projects/">Projects</a></td><td>"Invite teammate" returns Permission denied</td><td>Solved</td></tr>
+        <tr><td><a href="/demo/analytics/">Analytics</a></td><td>Date range silently resets</td><td><strong>Unsolved</strong> - becomes a ticket</td></tr>
+        <tr><td><a href="/demo/settings/payment/">Settings</a></td><td>Card details on screen</td><td>Blocklisted - widget never loads</td></tr>
+      </tbody>
+    </table>
+    <p class="note" style="margin-top:14px">
+      Dev tools: <a href="/admin/">approval page</a> ·
+      <a href="/docs">API docs</a> ·
+      <a href="/healthz">health</a>
+    </p>
+  </div>
+</main>
+
+<script>renderChrome('')</script>
+
+<script src="/widget.js"
+        data-api=""
+        data-key="demo-key"
+        data-subproduct="auto"
+        data-blocklist="/demo/settings/*"></script>
+</body>
+</html>

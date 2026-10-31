@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Billing - Acme Suite</title>
+<link rel="stylesheet" href="/demo/assets/app.css">
+<script src="/demo/assets/app.js"></script>
+<script>
+  window.LOOPDESK_CONTEXT = {
+    subproduct: 'billing',
+    app_version: '2.4.0',
+    user_role: 'member',
+  };
+</script>
+</head>
+<body>
+<main>
+  <h1>Billing</h1>
+  <p class="sub">Invoices and payment history for <span data-private>Northwind Traders</span>.</p>
+
+  <div class="card">
+    <h2>Invoices</h2>
+    <table>
+      <thead><tr><th>Invoice</th><th>Period</th><th>Amount</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>INV-2041</td><td>Oct 2026</td><td>₹48,200</td><td>Paid</td></tr>
+        <tr><td>INV-2018</td><td>Sep 2026</td><td>₹48,200</td><td>Paid</td></tr>
+        <tr><td>INV-1996</td><td>Aug 2026</td><td>₹44,000</td><td>Paid</td></tr>
+      </tbody>
+    </table>
+    <div class="row" style="margin-top:16px">
+      <button class="primary" id="export">Export invoices (CSV)</button>
+      <span class="note">Seeded bug: the export endpoint returns a 500.</span>
+    </div>
+    <div id="out"></div>
+  </div>
+</main>
+
+<script>
+  renderChrome('billing');
+
+  // Seeded bug #1: the export API fails. This is a *known* issue - the
+  // knowledge base already has the workaround, so the agent should answer
+  // confidently instead of opening a ticket.
+  document.getElementById('export').addEventListener('click', async () => {
+    const out = document.getElementById('out');
+    out.innerHTML = '<div class="alert bad">Export failed. Please try again later.</div>';
+    try {
+      const res = await fetch('/api/demo/billing/export?format=csv');
+      if (!res.ok) throw new Error('Invoice export failed with status ' + res.status);
+    } catch (err) {
+      console.error('Invoice export failed: TypeError: Failed to fetch /api/demo/billing/export (500)');
+    }
+  });
+</script>
+
+<script src="/widget.js"
+        data-api=""
+        data-key="demo-key"
+        data-subproduct="auto"
+        data-blocklist="/demo/settings/*"></script>
+</body>
+</html>

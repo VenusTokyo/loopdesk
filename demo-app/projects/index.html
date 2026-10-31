@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Projects - Acme Suite</title>
+<link rel="stylesheet" href="/demo/assets/app.css">
+<script src="/demo/assets/app.js"></script>
+<script>
+  window.LOOPDESK_CONTEXT = {
+    subproduct: 'projects',
+    app_version: '2.4.0',
+    user_role: 'member',
+  };
+</script>
+</head>
+<body>
+<main>
+  <h1>Projects</h1>
+  <p class="sub">Three active projects.</p>
+
+  <div class="card">
+    <h2>Team</h2>
+    <table>
+      <thead><tr><th>Member</th><th>Email</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td data-private>Priya Raman</td><td data-private>priya@northwind.example</td><td>Member</td></tr>
+        <tr><td data-private>Arun Mehta</td><td data-private>arun@northwind.example</td><td>Admin</td></tr>
+      </tbody>
+    </table>
+    <div class="row" style="margin-top:16px">
+      <input type="text" id="email" placeholder="teammate@company.com" style="flex:1">
+      <button class="primary" id="invite">Invite teammate</button>
+    </div>
+    <p class="note">Seeded bug: a member role gets "Permission denied" with no explanation.</p>
+    <div id="out"></div>
+  </div>
+</main>
+
+<script>
+  renderChrome('projects');
+
+  // Seeded bug #2: inviting as a non-admin fails with a bare error. Also a
+  // known issue - the KB entry explains the role requirement.
+  document.getElementById('invite').addEventListener('click', async () => {
+    const out = document.getElementById('out');
+    out.innerHTML = '<div class="alert bad">Permission denied.</div>';
+    try {
+      const res = await fetch('/api/demo/projects/invite', { method: 'POST' });
+      if (!res.ok) throw new Error('invite rejected: ' + res.status);
+    } catch (err) {
+      console.error('Invite teammate failed: Permission denied (403) for role "member"');
+    }
+  });
+</script>
+
+<script src="/widget.js"
+        data-api=""
+        data-key="demo-key"
+        data-subproduct="auto"
+        data-blocklist="/demo/settings/*"></script>
+</body>
+</html>

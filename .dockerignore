@@ -1,0 +1,7 @@
+.venv/
+venv/
+__pycache__/
+data/
+node_modules/
+.git/
+.env

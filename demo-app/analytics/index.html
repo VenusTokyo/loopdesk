@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Analytics - Acme Suite</title>
+<link rel="stylesheet" href="/demo/assets/app.css">
+<script src="/demo/assets/app.js"></script>
+<script>
+  window.LOOPDESK_CONTEXT = {
+    subproduct: 'analytics',
+    app_version: '2.4.0',
+    user_role: 'member',
+  };
+</script>
+</head>
+<body>
+<main>
+  <h1>Analytics</h1>
+  <p class="sub">Usage across your workspace.</p>
+
+  <div class="card">
+    <h2>Report</h2>
+    <div class="row">
+      <label for="range" class="note">Date range</label>
+      <select id="range">
+        <option value="7d">Last 7 days</option>
+        <option value="30d">Last 30 days</option>
+        <option value="90d">Last 90 days</option>
+      </select>
+      <button id="break" class="danger">Break it</button>
+      <span class="note" id="breakState">bug: off</span>
+    </div>
+    <div class="chart" id="chart"></div>
+    <div id="out"></div>
+    <p class="note">
+      This is the <strong>unsolved</strong> bug. With "Break it" on, the range
+      silently resets to Last 7 days. Nothing in the knowledge base covers it,
+      so the agent should refuse to guess and offer a ticket instead.
+    </p>
+  </div>
+</main>
+
+<script>
+  renderChrome('analytics');
+
+  let broken = false;
+  const chart = document.getElementById('chart');
+  const range = document.getElementById('range');
+
+  function draw(points) {
+    chart.innerHTML = '';
+    for (let i = 0; i < points; i++) {
+      const bar = document.createElement('div');
+      bar.style.height = (25 + Math.round(Math.abs(Math.sin(i * 1.7)) * 70)) + '%';
+      chart.appendChild(bar);
+    }
+  }
+  draw(7);
+
+  document.getElementById('break').addEventListener('click', () => {
+    broken = !broken;
+    document.getElementById('breakState').textContent = 'bug: ' + (broken ? 'ON' : 'off');
+  });
+
+  // Seeded bug #3 (unsolved): the filter resets itself and the report call
+  // 500s. Deterministic, so the live demo cannot misfire.
+  range.addEventListener('change', async () => {
+    const chosen = range.value;
+    const out = document.getElementById('out');
+    out.innerHTML = '';
+
+    if (broken) {
+      try {
+        const res = await fetch('/api/demo/analytics/report?range=' + chosen);
+        if (!res.ok) throw new Error('report failed ' + res.status);
+      } catch (err) {
+        console.error("TypeError: Cannot read properties of undefined (reading 'range')");
+      }
+      range.value = '7d';
+      draw(7);
+      out.innerHTML = '<div class="alert bad">Showing Last 7 days.</div>';
+      return;
+    }
+
+    draw({ '7d': 7, '30d': 15, '90d': 24 }[chosen]);
+    out.innerHTML = '<div class="alert ok">Showing ' + range.options[range.selectedIndex].text + '.</div>';
+  });
+</script>
+
+<script src="/widget.js"
+        data-api=""
+        data-key="demo-key"
+        data-subproduct="auto"
+        data-blocklist="/demo/settings/*"></script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Payment settings - Acme Suite</title>
+<link rel="stylesheet" href="/demo/assets/app.css">
+<script src="/demo/assets/app.js"></script>
+<script>
+  window.LOOPDESK_CONTEXT = { subproduct: 'settings', app_version: '2.4.0', user_role: 'member' };
+</script>
+</head>
+<body>
+<main>
+  <h1>Payment settings</h1>
+  <p class="sub">Card and billing address.</p>
+
+  <div class="card">
+    <h2>Saved card</h2>
+    <table>
+      <tbody>
+        <tr><th>Card</th><td data-private>4111 1111 1111 4242</td></tr>
+        <tr><th>Expiry</th><td data-private>09 / 29</td></tr>
+        <tr><th>Name on card</th><td data-private>Priya Raman</td></tr>
+        <tr><th>Billing address</th><td data-private>14 Nehru Place, New Delhi 110019</td></tr>
+      </tbody>
+    </table>
+    <div class="alert ok">
+      The LoopDesk button is <strong>not rendered on this page</strong>. The route
+      matches <code>data-blocklist="/demo/settings/*"</code>, so no screenshot of
+      card data can be taken at all - the capture code never loads.
+    </div>
+  </div>
+</main>
+
+<script>renderChrome('settings');</script>
+
+<script src="/widget.js"
+        data-api=""
+        data-key="demo-key"
+        data-subproduct="auto"
+        data-blocklist="/demo/settings/*"></script>
+</body>
+</html>
