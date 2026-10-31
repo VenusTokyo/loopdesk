@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LoopDesk — every ticket you close answers the next user</title>
+<meta name="description" content="A drop-in widget. Users screenshot the problem, an agent answers from your knowledge base with a citation, and the ticket it opens becomes the next answer. MIT, self-hostable.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='12' fill='none' stroke='%23faff69' stroke-width='5' stroke-dasharray='56 20' transform='rotate(-30 16 16)'/></svg>">
+<link rel="stylesheet" href="/landing/theme.css">
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <a class="logo" href="/"><span class="mark"></span>LoopDesk</a>
+  <div class="links">
+    <a href="#loop">How it works</a>
+    <a href="#admin">Review screen</a>
+    <a href="#oss">Open source</a>
+    <a href="/demo/">Live demo</a>
+  </div>
+  <a class="btn p" href="#run">Run it locally</a>
+</nav>
+
+<section class="band hero">
+  <div>
+    <h1>Every ticket you close answers the next user.</h1>
+    <p class="lead">Users screenshot the problem. An agent answers from your own knowledge base, with a citation. When it can't, it says so and opens the ticket &mdash; and the fix you ship becomes the next answer.</p>
+    <div class="row">
+      <button class="btn p mono" id="copy" type="button" data-copy="docker compose up --build">docker compose up --build</button>
+      <a class="btn" href="/demo/">Try the demo</a>
+    </div>
+    <p class="note" style="margin-top:28px">
+      The demo runs with no API key, no database server and no GitHub token.
+      The default model provider is offline.
+    </p>
+  </div>
+  <div class="win">
+    <div class="tabs" role="tablist" aria-label="Product preview">
+      <button class="tab" role="tab" aria-selected="true" data-p="p1">Answer found</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="p2">No known fix</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="p3">Embed</button>
+    </div>
+    <div class="pane" id="p1">
+      <div class="q">The invoice export button fails with a server error.</div>
+      <div class="ans"><b>Export the invoice individually.</b> The bulk export 500s while the billing renderer is under load; a single invoice download works, and the bulk job retries on its own.</div>
+      <div class="meter" role="img" aria-label="Confidence 0.90, above the 0.7 threshold">
+        <i style="width:90%"></i><s style="left:40%"></s><s style="left:70%"></s>
+        <span style="left:40%">0.4</span><span style="left:70%">0.7</span>
+      </div>
+      <span class="chip y">cited solution</span> <span class="chip">confidence 0.90</span>
+      <div class="row" style="margin-top:24px"><button class="btn" type="button">This helped</button><button class="btn" type="button">Did not help</button></div>
+    </div>
+    <div class="pane" id="p2" hidden>
+      <div class="q">The date filter will not stay on 30 days, it jumps back by itself.</div>
+      <div class="ans"><b>I could not find a known fix.</b> I won't guess. I can open a ticket with your screenshot, the console error and the failed request attached.</div>
+      <div class="meter" role="img" aria-label="Confidence 0.0, below the 0.4 threshold">
+        <i style="width:4%"></i><s style="left:40%"></s><s style="left:70%"></s>
+        <span style="left:40%">0.4</span><span style="left:70%">0.7</span>
+      </div>
+      <div class="mini" style="margin-bottom:20px"><span class="k3">attached automatically</span><br>TypeError: Cannot read properties of undefined (reading 'range')<br>GET /api/demo/analytics/report &rarr; 500</div>
+      <button class="btn p" type="button">Raise a ticket</button>
+    </div>
+    <div class="pane" id="p3" hidden>
+<pre><span class="k3">&lt;!-- one tag, nothing else changes --&gt;</span>
+&lt;<span class="k1">script</span> src=<span class="k2">"/widget.js"</span>
+  data-api=<span class="k2">"https://help.example.com"</span>
+  data-key=<span class="k2">"your-key"</span>
+  data-blocklist=<span class="k2">"/settings/*"</span>&gt;&lt;/<span class="k1">script</span>&gt;
+
+<span class="k3">&lt;!-- never captured --&gt;</span>
+&lt;<span class="k1">span</span> data-private&gt;priya@northwind.example&lt;/<span class="k1">span</span>&gt;</pre>
+    </div>
+  </div>
+</section>
+</div>
+
+<section class="soft band"><div class="wrap">
+  <div class="stats">
+    <div class="stat"><b>1</b><span>script tag to install</span></div>
+    <div class="stat"><b>0.7</b><span>confidence needed to show a fix</span></div>
+    <div class="stat"><b>0</b><span>API keys to run the demo</span></div>
+    <div class="stat"><b>7</b><span>scoped good first issues</span></div>
+  </div>
+</div></section>
+
+<section class="band" id="loop"><div class="wrap">
+  <h2>The fix stops dying in the closed ticket.</h2>
+  <p class="lead" style="margin-top:16px">Step through what happens after a developer closes an issue.</p>
+  <div class="loop">
+    <div class="steps" role="tablist" aria-label="The loop">
+      <button class="step" role="tab" aria-selected="true">Issue closed</button>
+      <button class="step" role="tab" aria-selected="false">Draft written</button>
+      <button class="step" role="tab" aria-selected="false">Human approves</button>
+      <button class="step" role="tab" aria-selected="false">Committed to repo</button>
+      <button class="step" role="tab" aria-selected="false">Next user helped</button>
+    </div>
+    <div class="win"><div class="pane" id="lp"></div></div>
+  </div>
+</div></section>
+
+<section class="soft band"><div class="wrap">
+  <h2>Three things it does on purpose.</h2>
+  <div class="grid3">
+    <div class="card">
+      <h3>It refuses to guess</h3>
+      <p>Citations to ids that were never offered are dropped. With nothing left, confidence is capped below the gate and you get a ticket &mdash; never an invented step.</p>
+      <div class="mini"><span class="k3"># agent/schema.py</span><br>if sol_id not in allowed_ids:<br>&nbsp;&nbsp;continue<br>if not matches:<br>&nbsp;&nbsp;confidence = min(confidence, 0.2)</div>
+    </div>
+    <div class="card">
+      <h3>Private data never enters the image</h3>
+      <p>Fields marked private are masked before the pixels are rendered. On blocklisted routes the capture code never loads at all.</p>
+      <div class="mini">&gt; window.LoopDesk<br><span class="ok">undefined</span><span class="k3">  // on /settings/payment</span></div>
+    </div>
+    <div class="card">
+      <h3>The knowledge base grows itself</h3>
+      <p>Close an issue and a solution that did not exist ninety seconds ago is listed for the next user on that page.</p>
+      <div class="mini">solutions/analytics/<br><span class="k2">analytics-date-range-resets.md</span></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="band" id="admin"><div class="wrap">
+  <h2>Review is where the human stays in charge.</h2>
+  <p class="lead" style="margin:16px 0 40px">The raw ticket on the left, the draft on the right. Nothing publishes until someone approves it.</p>
+  <div class="win">
+    <div class="diff">
+      <div>
+        <h3>Closed issue &middot; Analytics date range</h3>
+        <p style="font-size:14px">Range selection was dropped before the report query ran. Fixed in 2.4.1 by persisting filter state before the fetch.</p>
+        <pre class="strike">at ReportFilter.apply (filters.js:88)
+at async handler (api/report.js:21)</pre>
+        <p class="note">Stack traces and file paths are stripped before drafting.</p>
+      </div>
+      <div>
+        <h3>Draft solution &middot; editable</h3>
+        <textarea class="field" aria-label="Draft solution">- Update to v2.4.1 or later.
+- Reload the Analytics page.
+
+The date range you pick is now kept when the report reloads.</textarea>
+      </div>
+    </div>
+    <div class="bar">
+      <div class="time"><span class="on">webhook</span><span class="on">draft</span><span class="on">review</span><span>committed</span></div>
+      <div class="row"><button class="btn" type="button">Reject</button><button class="btn p" type="button" id="approve">Approve and commit</button></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="band" id="run" style="padding-top:0"><div class="wrap">
+  <div class="cta">
+    <h2>Run the whole loop on your laptop.</h2>
+    <p>No API key, no database server, works offline.</p>
+    <button class="btn k mono" type="button" id="copy2" data-copy="docker compose up --build">docker compose up --build</button>
+  </div>
+</div></section>
+
+<section class="band" id="oss" style="padding-top:0"><div class="wrap">
+  <div class="hero">
+    <div>
+      <h2>Bring your own model.</h2>
+      <p class="lead" style="margin-top:16px">Gemma through the Gemini API, or any OpenAI-compatible endpoint: Ollama, vLLM, a DigitalOcean GenAI endpoint. Adding a provider is one file. MIT licensed.</p>
+      <div class="row" style="margin-top:28px">
+        <a class="btn p" href="https://github.com/VenusTokyo/loopdesk">View the repository</a>
+        <a class="btn" href="https://github.com/VenusTokyo/loopdesk/blob/main/CONTRIBUTING.md">Good first issues</a>
+      </div>
+    </div>
+    <div class="win"><div class="pane" style="min-height:0">
+<pre><span class="k1">class</span> LLMProvider(Protocol):
+  <span class="k1">def</span> vision_json(self, system, user, image, schema): ...
+  <span class="k1">def</span> embed(self, text): ...</pre>
+    </div></div>
+  </div>
+  <p class="note">
+    Honest scope: automatic PII detection, multi-tenancy and the insights
+    dashboard are roadmap, not shipped. Retrieval ranks in Python today;
+    pgvector is a tracked good first issue.
+  </p>
+</div></section>
+
+<footer><div class="wrap">
+  LoopDesk &middot; MIT &middot; Every ticket you close answers the next user.
+  <span style="float:right">
+    <a href="/demo/">Demo</a> &middot;
+    <a href="/admin/">Admin</a> &middot;
+    <a href="/docs">API</a>
+  </span>
+</div></footer>
+
+<script src="/landing/landing.js"></script>
+</body>
+</html>

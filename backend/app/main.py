@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from .config import REPO_ROOT, settings
@@ -76,13 +76,15 @@ def widget_js() -> FileResponse:
 
 
 @app.get("/")
-def root() -> RedirectResponse:
-    return RedirectResponse("/demo/")
+def root() -> FileResponse:
+    """The landing page. The demo app lives at /demo/."""
+    return FileResponse(REPO_ROOT / "landing" / "index.html", media_type="text/html")
 
 
 _screenshots = settings.data_dir / "screenshots"
 _screenshots.mkdir(parents=True, exist_ok=True)
 
 app.mount("/files", StaticFiles(directory=_screenshots), name="files")
+app.mount("/landing", StaticFiles(directory=REPO_ROOT / "landing"), name="landing")
 app.mount("/admin", StaticFiles(directory=REPO_ROOT / "admin", html=True), name="admin")
 app.mount("/demo", StaticFiles(directory=REPO_ROOT / "demo-app", html=True), name="demo")

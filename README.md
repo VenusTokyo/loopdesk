@@ -45,6 +45,7 @@ uvicorn backend.app.main:app --reload
 
 | URL | What it is |
 |---|---|
+| `/` | Landing page |
 | `/demo/` | Acme Suite, the sample host product with seeded bugs |
 | `/admin/` | Approve AI-drafted solutions (token: `dev-admin`) |
 | `/docs` | OpenAPI reference |
@@ -154,6 +155,7 @@ of them can be replaced without touching the pipeline.
 ## Repository layout
 
 ```
+landing/           landing page (index.html, theme.css, landing.js)
 widget/src/        capture.js, metadata.js, ui.js, api.js, index.js
 widget/dist/       widget.js (built with `node widget/build.js`, no bundler)
 backend/app/       FastAPI routes, models, config
