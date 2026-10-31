@@ -20,6 +20,7 @@ os.environ["GITHUB_TOKEN"] = ""
 
 from fastapi.testclient import TestClient  # noqa: E402
 
+from backend.app.config import settings  # noqa: E402
 from backend.app.db import SessionLocal, init_db  # noqa: E402
 from backend.app.main import app  # noqa: E402
 from backend.app.models import Solution, Ticket  # noqa: E402
@@ -160,7 +161,9 @@ def test_duplicate_detection_offers_me_too(client):
         },
     ).json()
     assert body["duplicate_of"] is not None
-    assert body["duplicate_of"]["issue_number"] == 42
+    # The seeded ticket's number is configuration, not a constant: a fresh
+    # GitHub repository numbers its first issue 1, not 42.
+    assert body["duplicate_of"]["issue_number"] == settings.demo_duplicate_issue
 
 
 def test_full_resolution_loop(client):

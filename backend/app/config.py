@@ -42,6 +42,10 @@ class Settings(BaseSettings):
     github_repo: str = ""
     github_webhook_secret: str = "dev-secret"
 
+    # The hand-seeded open ticket used to demonstrate duplicate detection.
+    # Issue numbers start at 1 in a fresh repository, so this is not a constant.
+    demo_duplicate_issue: int = 42
+
     confidence_high: float = 0.7
     confidence_low: float = 0.4
     admin_token: str = "dev-admin"

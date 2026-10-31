@@ -2,7 +2,7 @@
 title: Analytics date range resets to Last 7 days
 subproduct: analytics
 source: github_issue
-issue: 44
+issue: 3
 routes: ['/demo/analytics/', '/demo/analytics/*']
 ---
 # Analytics date range resets to Last 7 days

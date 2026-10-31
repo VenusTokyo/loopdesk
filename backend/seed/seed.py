@@ -14,6 +14,7 @@ import logging
 from pathlib import Path
 
 from ..agent.providers import get_provider
+from ..app.config import settings
 from ..app.db import SessionLocal, init_db
 from ..app.models import Event, Rating, Report, Solution, Ticket
 
@@ -30,7 +31,6 @@ DUPLICATE_CANDIDATE = {
         "| Sub-product | `analytics` |\n| App version | `2.4.0` |\n"
     ),
     "subproduct": "analytics",
-    "github_issue_number": 42,
 }
 
 
@@ -69,24 +69,22 @@ def seed(reset_first: bool = False) -> None:
                 f"{entry['title']}\n{entry['summary']}\n{entry['steps_md']}"
             )
 
-        ticket = (
-            db.query(Ticket)
-            .filter(Ticket.github_issue_number == DUPLICATE_CANDIDATE["github_issue_number"])
-            .one_or_none()
-        )
+        number = settings.demo_duplicate_issue
+        repo = settings.github_repo or "example/loopdesk-demo-tickets"
+        ticket = db.query(Ticket).filter(Ticket.github_issue_number == number).one_or_none()
         if ticket is None:
-            repo_hint = "example/loopdesk-demo-tickets"
             ticket = Ticket(
                 **DUPLICATE_CANDIDATE,
+                github_issue_number=number,
                 status="open",
-                dry_run=True,
-                github_url=f"https://github.com/{repo_hint}/issues/42",
+                dry_run=not settings.github_enabled,
+                github_url=f"https://github.com/{repo}/issues/{number}",
             )
             ticket.embedding = provider.embed(
                 f"{DUPLICATE_CANDIDATE['title']}\n{DUPLICATE_CANDIDATE['body']}"
             )
             db.add(ticket)
-            log.info("added open ticket #42 for the duplicate-detection demo")
+            log.info("added open ticket #%s for the duplicate-detection demo", number)
 
         db.commit()
         published = db.query(Solution).filter(Solution.status == "published").count()

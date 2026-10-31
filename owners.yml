@@ -5,11 +5,11 @@ defaults:
 
 subproducts:
   billing:
-    assignees: []
+    assignees: ["VenusTokyo"]
     labels: ["sub:billing"]
   projects:
-    assignees: []
+    assignees: ["VenusTokyo"]
     labels: ["sub:projects"]
   analytics:
-    assignees: []
+    assignees: ["VenusTokyo"]
     labels: ["sub:analytics"]
