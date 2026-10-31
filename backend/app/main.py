@@ -21,6 +21,8 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s"
 )
 log = logging.getLogger("loopdesk")
+# httpx logs each request URL at INFO, and the Gemini URL carries the API key.
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):

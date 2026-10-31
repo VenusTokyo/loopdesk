@@ -22,7 +22,12 @@ API = "https://generativelanguage.googleapis.com/v1beta"
 # demand") intermittently while the identical request succeeds on a retry.
 # Transient, so retry rather than fall through to the ticket path.
 RETRY_STATUS = {429, 500, 502, 503, 504}
-BACKOFF = (0.8, 2.0, 4.0)
+# Measured live: an overloaded Gemma can hang ~90s before returning 500, so
+# the per-request timeout matters more than the number of retries. A whole
+# analyze call must stay under ~75s or the widget just spins.
+BACKOFF = (0.5, 1.5)
+REQUEST_TIMEOUT = 35.0
+TOTAL_BUDGET = 75.0
 # If the configured Gemma stays overloaded, the sibling size is usually free.
 SIBLINGS = {"gemma-4-31b-it": "gemma-4-26b-a4b-it", "gemma-4-26b-a4b-it": "gemma-4-31b-it"}
 
@@ -70,11 +75,18 @@ class GemmaProvider:
         if sibling:
             models.append(sibling)
 
+        deadline = time.monotonic() + TOTAL_BUDGET
         last: Exception | None = None
         for model in models:
             for attempt, pause in enumerate(BACKOFF, start=1):
+                if time.monotonic() > deadline:
+                    log.error("giving up on %s after %ss", self.model, TOTAL_BUDGET)
+                    raise RuntimeError(
+                        f"no response within {TOTAL_BUDGET:.0f}s "
+                        f"({_redact(str(last), self.key) if last else 'timeout'})"
+                    )
                 try:
-                    with httpx.Client(timeout=90) as c:
+                    with httpx.Client(timeout=REQUEST_TIMEOUT) as c:
                         r = c.post(
                             f"{API}/models/{model}:generateContent",
                             params={"key": self.key},
@@ -117,7 +129,7 @@ class GemmaProvider:
         last: Exception | None = None
         for pause in BACKOFF:
             try:
-                with httpx.Client(timeout=45) as c:
+                with httpx.Client(timeout=REQUEST_TIMEOUT) as c:
                     r = c.post(
                         f"{API}/models/{self.embed_model}:embedContent",
                         params={"key": self.key},
